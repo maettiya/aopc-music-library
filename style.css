@@ -422,6 +422,48 @@ h3,
   text-underline-offset: 0.2em;
 }
 
+.about-page main {
+  display: grid;
+  justify-items: center;
+}
+
+.about-page .section-head,
+.about-page .pack-info-block {
+  text-align: center;
+  width: min(1280px, 98vw);
+}
+
+.about-page .section-head p,
+.about-page .pack-info-block p {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: none;
+}
+
+.about-page .pack-info-block {
+  width: min(1280px, 98vw);
+  max-width: none;
+}
+
+.about-page .pack-info-block:first-of-type h2 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  letter-spacing: 0.11em;
+}
+
+.about-page .pack-info-block:nth-of-type(2) h2 {
+  font-size: clamp(1.3rem, 3.2vw, 2rem);
+  letter-spacing: 0.1em;
+}
+
+.about-page .pack-info-block a {
+  color: var(--text);
+}
+
+.about-page .pack-info-block a:hover,
+.about-page .pack-info-block a:focus-visible {
+  color: var(--accent);
+}
+
 .reveal {
   opacity: 0;
   transform: translateY(18px);
