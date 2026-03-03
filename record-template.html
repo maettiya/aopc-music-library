@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AOPC Record</title>
+    <meta name="description" content="AOPC record page with composition and stems purchase options." />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="logo" href="index.html" aria-label="AOPC Music Library Home">
+          <img
+            src="aopc-logo.png"
+            alt="AOPC Music Library"
+            onerror="this.style.display='none';this.parentElement.classList.add('logo-missing');"
+          />
+          <span class="logo-fallback">AOPC</span>
+        </a>
+        <nav class="top-nav" aria-label="Main navigation">
+          <a href="index.html#collections">Collections</a>
+          <a href="#" aria-label="Cart">Cart <span data-cart-count>(0)</span></a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="record-layout reveal">
+          <div class="record-art">
+            <div class="artwork-placeholder" id="record-artwork" role="img" aria-label="Record artwork placeholder"></div>
+          </div>
+
+          <div class="record-meta">
+            <h1 id="record-title">Record Title</h1>
+
+            <div class="selected-price" id="selected-price">$20</div>
+
+            <div class="purchase-toggle" role="group" aria-label="Choose purchase option">
+              <button class="outline-btn purchase-option is-active" type="button" data-option="compositions">
+                Compositions
+              </button>
+              <button class="outline-btn purchase-option" type="button" data-option="stems">
+                Compositions &amp; Stems
+              </button>
+            </div>
+
+            <div class="record-actions">
+              <button id="add-cart" class="filled-btn" type="button">ADD TO CART</button>
+            </div>
+
+            <div class="pack-info-block">
+              <h2>RECORD INFO</h2>
+              <p id="pack-description"></p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>2026 AOPC MUSIC LIBRARY</p>
+        <div class="logo-mark">
+          <img src="aopc-logo.png" alt="AOPC Music Library" />
+        </div>
+        <p class="socials"><a href="about.html">ABOUT</a></p>
+      </footer>
+    </div>
+
+    <script src="packs.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

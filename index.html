@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AOPC Music Library</title>
+    <meta
+      name="description"
+      content="AOPC Music Library collection of compositions and stem-ready packs."
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="logo" href="index.html" aria-label="AOPC Music Library Home">
+          <img
+            src="aopc-logo.png"
+            alt="AOPC Music Library"
+            onerror="this.style.display='none';this.parentElement.classList.add('logo-missing');"
+          />
+          <span class="logo-fallback">AOPC</span>
+        </a>
+        <nav class="top-nav" aria-label="Main navigation">
+          <a href="#collections">Collections</a>
+          <a href="#" aria-label="Cart">Cart <span data-cart-count>(0)</span></a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero-split reveal">
+          <div class="hero-copy">
+            <h1>AOPC<br />MUSIC LIBRARY</h1>
+            <p>
+              A music library department offering original records and stem-ready compositions.
+            </p>
+            <div class="hero-actions">
+              <a class="filled-btn" href="#collections">Browse Collection</a>
+            </div>
+          </div>
+
+          <div id="latest-list" class="latest-list" aria-label="Latest records"></div>
+        </section>
+
+        <section id="collections" class="collections-section">
+          <div class="section-head reveal">
+            <h2>COLLECTION</h2>
+            <p>An ever-expanding library of records to sample.</p>
+          </div>
+          <div id="collections-grid" class="collections-grid"></div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>2026 AOPC MUSIC LIBRARY</p>
+        <div class="logo-mark">
+          <img src="aopc-logo.png" alt="AOPC Music Library" />
+        </div>
+        <p class="socials"><a href="about.html">ABOUT</a></p>
+      </footer>
+    </div>
+
+    <script src="packs.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
