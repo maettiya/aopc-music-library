@@ -1,6 +1,9 @@
 const CART_KEY = 'aopc_cart';
 const waveformCache = new Map();
 let sharedAudioContext;
+let currentPreviewAudio = null;
+let currentPreviewButton = null;
+let currentPreviewState = null;
 
 function getCart() {
   try {
@@ -131,20 +134,15 @@ function buildWavePathFromPeaks(peaks) {
   return d;
 }
 
-function buildWaveSvg(index, isActive, peaks = null) {
+function buildWaveSvg(index, _isActive, peaks = null) {
   const basePath = peaks ? buildWavePathFromPeaks(peaks) : buildSyntheticWavePath(index, 170);
-  const hotStart = 17 + index * 2;
-  const hotWidth = 24;
 
   return `
     <svg class="wave-svg" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
       <path class="wave-shape" d="${basePath}"></path>
-      ${
-        isActive
-          ? `<path class="wave-shape-hot" d="${basePath}" style="--hot-start:${hotStart}%;--hot-end:${hotStart + hotWidth}%"></path>`
-          : ''
-      }
+      <path class="wave-shape-progress" d="${basePath}"></path>
     </svg>
+    <span class="wave-head" aria-hidden="true"></span>
   `;
 }
 
@@ -153,16 +151,81 @@ async function renderIndexPage() {
   const collectionsGrid = document.getElementById('collections-grid');
   if (!latestList || !collectionsGrid) return;
 
-  const featured = packs.filter((pack) => pack.featured).slice(0, 7);
+  const featured = packs.filter((pack) => pack.featured).slice(0, 6);
   const waveformTasks = [];
+  const previewStates = new Map();
+
+  const setWaveProgress = (state, progressPercent) => {
+    const clamped = Math.max(0, Math.min(100, progressPercent));
+    state.waveTrack.style.setProperty('--progress', `${clamped}%`);
+  };
+
+  const setPreviewButtonState = (button, isPlaying) => {
+    const icon = button.querySelector('span');
+    if (icon) icon.textContent = isPlaying ? '❚❚' : '▶';
+    button.classList.toggle('is-playing', isPlaying);
+  };
+
+  const pauseCurrentPreview = () => {
+    if (!currentPreviewAudio || !currentPreviewState) return;
+    currentPreviewAudio.pause();
+    setPreviewButtonState(currentPreviewState.button, false);
+    currentPreviewState.row.classList.remove('is-playing');
+  };
+
+  const ensurePreviewAudio = (state) => {
+    if (state.audio || !state.audioSrc) return state.audio;
+
+    const audio = new Audio(state.audioSrc);
+    audio.preload = 'metadata';
+
+    audio.addEventListener('loadedmetadata', () => {
+      if (typeof state.pendingSeek === 'number' && audio.duration) {
+        audio.currentTime = audio.duration * state.pendingSeek;
+        state.pendingSeek = null;
+      }
+      const progress = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+      setWaveProgress(state, progress);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      if (!audio.duration) return;
+      setWaveProgress(state, (audio.currentTime / audio.duration) * 100);
+    });
+
+    audio.addEventListener('play', () => {
+      state.row.classList.add('is-playing');
+      setPreviewButtonState(state.button, true);
+    });
+
+    audio.addEventListener('pause', () => {
+      state.row.classList.remove('is-playing');
+      setPreviewButtonState(state.button, false);
+    });
+
+    audio.addEventListener('ended', () => {
+      setWaveProgress(state, 0);
+      if (currentPreviewState === state) {
+        currentPreviewAudio = null;
+        currentPreviewButton = null;
+        currentPreviewState = null;
+      }
+    });
+
+    state.audio = audio;
+    return audio;
+  };
 
   featured.forEach((pack, index) => {
-    const row = document.createElement('a');
+    const row = document.createElement('div');
     row.className = `latest-row reveal ${index === 1 ? 'is-active' : ''}`;
-    row.href = `record-template.html?pack=${encodeURIComponent(pack.title)}`;
+    row.dataset.previewId = String(index);
 
     row.innerHTML = `
       <span class="mini-art" style="background-image:url('${pack.artwork}')"></span>
+      <button class="preview-toggle" type="button" data-audio="${pack.previewAudio || ''}" aria-label="Play ${pack.title}" title="Play ${pack.title}">
+        <span aria-hidden="true">▶</span>
+      </button>
       <span class="wave-track" data-wave-track>
         ${buildWaveSvg(index, index === 1)}
       </span>
@@ -170,15 +233,83 @@ async function renderIndexPage() {
 
     latestList.appendChild(row);
 
+    const state = {
+      row,
+      button: row.querySelector('.preview-toggle'),
+      waveTrack: row.querySelector('[data-wave-track]'),
+      audioSrc: pack.previewAudio || '',
+      audio: null,
+      pendingSeek: null
+    };
+    setWaveProgress(state, 0);
+    previewStates.set(row.dataset.previewId, state);
+
     if (pack.previewAudio) {
-      const waveTrack = row.querySelector('[data-wave-track]');
       waveformTasks.push(
         getWavePeaks(pack.previewAudio).then((peaks) => {
-          if (!waveTrack || !peaks) return;
-          waveTrack.innerHTML = buildWaveSvg(index, index === 1, peaks);
+          if (!state.waveTrack || !peaks) return;
+          state.waveTrack.innerHTML = buildWaveSvg(index, index === 1, peaks);
+          setWaveProgress(state, state.audio && state.audio.duration ? (state.audio.currentTime / state.audio.duration) * 100 : 0);
         })
       );
     }
+  });
+
+  latestList.addEventListener('click', (event) => {
+    const button = event.target.closest('.preview-toggle');
+    if (button) {
+      const row = button.closest('.latest-row');
+      if (!row) return;
+      const state = previewStates.get(row.dataset.previewId);
+      if (!state || !state.audioSrc) return;
+
+      const audio = ensurePreviewAudio(state);
+      if (!audio) return;
+
+      if (currentPreviewState && currentPreviewState !== state) {
+        pauseCurrentPreview();
+      }
+
+      currentPreviewAudio = audio;
+      currentPreviewButton = button;
+      currentPreviewState = state;
+
+      if (!audio.paused) {
+        audio.pause();
+      } else {
+        audio.play().catch(() => {});
+      }
+      return;
+    }
+
+    const waveTrack = event.target.closest('[data-wave-track]');
+    if (!waveTrack) return;
+    const row = waveTrack.closest('.latest-row');
+    if (!row) return;
+    const state = previewStates.get(row.dataset.previewId);
+    if (!state || !state.audioSrc) return;
+
+    const audio = ensurePreviewAudio(state);
+    if (!audio) return;
+
+    if (currentPreviewState && currentPreviewState !== state) {
+      pauseCurrentPreview();
+    }
+
+    const rect = waveTrack.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+
+    if (audio.duration && Number.isFinite(audio.duration)) {
+      audio.currentTime = audio.duration * ratio;
+      setWaveProgress(state, ratio * 100);
+    } else {
+      state.pendingSeek = ratio;
+    }
+
+    currentPreviewAudio = audio;
+    currentPreviewButton = state.button;
+    currentPreviewState = state;
+    audio.play().catch(() => {});
   });
 
   packs.forEach((pack, index) => {

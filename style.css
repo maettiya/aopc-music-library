@@ -200,10 +200,9 @@ h3,
 
 .latest-row {
   display: grid;
-  grid-template-columns: 3rem minmax(10rem, 1fr);
+  grid-template-columns: 3rem 1.9rem minmax(10rem, 1fr);
   gap: 0.75rem;
   align-items: center;
-  text-decoration: none;
   color: var(--text);
   padding: 0.2rem 0;
 }
@@ -222,6 +221,31 @@ h3,
   width: 100%;
   height: 2.45rem;
   overflow: hidden;
+  position: relative;
+  --progress: 0%;
+  cursor: pointer;
+}
+
+.preview-toggle {
+  border: 0;
+  background: transparent;
+  color: rgba(245, 247, 251, 0.78);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.preview-toggle:hover,
+.preview-toggle:focus-visible {
+  color: var(--text);
+  outline: none;
+}
+
+.preview-toggle.is-playing {
+  color: var(--accent);
 }
 
 .wave-svg {
@@ -234,14 +258,25 @@ h3,
   fill: rgba(245, 247, 251, 0.14);
 }
 
-.latest-row.is-active .wave-shape {
-  fill: rgba(245, 247, 251, 0.2);
+.wave-shape-progress {
+  fill: var(--accent);
+  opacity: 0.92;
+  clip-path: polygon(0 0, var(--progress) 0, var(--progress) 100%, 0 100%);
 }
 
-.wave-shape-hot {
-  fill: var(--accent);
-  opacity: 0.95;
-  clip-path: polygon(var(--hot-start) 0, var(--hot-end) 0, var(--hot-end) 100%, var(--hot-start) 100%);
+.wave-head {
+  position: absolute;
+  top: 0;
+  left: var(--progress);
+  transform: translateX(-1px);
+  width: 2px;
+  height: 100%;
+  background: rgba(245, 247, 251, 0.72);
+  opacity: 0;
+}
+
+.latest-row.is-playing .wave-head {
+  opacity: 1;
 }
 
 .collections-section {
@@ -504,7 +539,7 @@ h3,
   }
 
   .latest-row {
-    grid-template-columns: 2.8rem 1fr;
+    grid-template-columns: 2.8rem 1.8rem 1fr;
   }
 }
 
